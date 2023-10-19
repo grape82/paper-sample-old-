@@ -73,66 +73,66 @@ tasks {
         }
     }
 
-    fun registerJar(name: String, bundle: Boolean) {
-        val taskName = name + "Jar"
-
-        register<ShadowJar>(taskName) {
-            archiveClassifier.set(name)
-            archiveAppendix.set(if (bundle) "bundle" else "clip")
-
-            from(sourceSets["main"].output)
-
-            if (bundle) {
-                configurations = listOf(
-                    project.configurations.runtimeClasspath.get()
-                )
-                exclude("clip-plugin.yml")
-                rename("bundle-plugin.yml", "plugin.yml")
-            } else {
-                exclude("bundle-plugin.yml")
-                rename("clip-plugin.yml", "plugin.yml")
-            }
-
-            doLast {
-                val plugins = rootProject.file(".server/plugins-$name")
-                val update = plugins.resolve("update")
-
-                copy {
-                    from(archiveFile)
-
-                    if (plugins.resolve(archiveFileName.get()).exists())
-                        into(update)
-                    else
-                        into(plugins)
-                }
-
-                update.resolve("UPDATE").deleteOnExit()
-            }
-        }
-    }
+//    fun registerJar(name: String, bundle: Boolean) {
+//        val taskName = name + "Jar"
 //
-//    fun registerJar(
-//        classifier: String,
-//        source: Any
-//    ) = register<Copy>("test${classifier.capitalized()}Jar") {
-//        from(source)
+//        register<ShadowJar>(taskName) {
+//            archiveClassifier.set(name)
+//            archiveAppendix.set(if (bundle) "bundle" else "clip")
 //
-//        val prefix = project.name
-//        val plugins = rootProject.file(".server/plugins-$classifier")
-//        val update = File(plugins, "update")
-//        val regex = Regex("($prefix).*(.jar)")
+//            from(sourceSets["main"].output)
 //
-//        from(source)
-//        into(if (plugins.listFiles { _, it -> it.matches(regex) }?.isNotEmpty() == true) update else plugins)
+//            if (bundle) {
+//                configurations = listOf(
+//                    project.configurations.runtimeClasspath.get()
+//                )
+//                exclude("clip-plugin.yml")
+//                rename("bundle-plugin.yml", "plugin.yml")
+//            } else {
+//                exclude("bundle-plugin.yml")
+//                rename("clip-plugin.yml", "plugin.yml")
+//            }
 //
-//        doLast {
-//            update.mkdirs()
-//            File(update, "RELOAD").delete()
+//            doLast {
+//                val plugins = rootProject.file(".server/plugins-$name")
+//                val update = plugins.resolve("update")
+//
+//                copy {
+//                    from(archiveFile)
+//
+//                    if (plugins.resolve(archiveFileName.get()).exists())
+//                        into(update)
+//                    else
+//                        into(plugins)
+//                }
+//
+//                update.resolve("UPDATE").deleteOnExit()
+//            }
 //        }
 //    }
 //
-//    registerJar("dev", jar)
-//    registerJar("reobf", reobfJar)
+    fun registerJar(
+        classifier: String,
+        source: Any
+    ) = register<Copy>("test${classifier.capitalized()}Jar") {
+        from(source)
+
+        val prefix = project.name
+        val plugins = rootProject.file(".server/plugins-$classifier")
+        val update = File(plugins, "update")
+        val regex = Regex("($prefix).*(.jar)")
+
+        from(source)
+        into(if (plugins.listFiles { _, it -> it.matches(regex) }?.isNotEmpty() == true) update else plugins)
+
+        doLast {
+            update.mkdirs()
+            File(update, "RELOAD").delete()
+        }
+    }
+
+    registerJar("dev", jar)
+    registerJar("reobf", reobfJar)
 }
 
 idea {
